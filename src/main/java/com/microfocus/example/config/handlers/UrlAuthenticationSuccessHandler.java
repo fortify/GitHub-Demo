@@ -85,8 +85,27 @@ public class UrlAuthenticationSuccessHandler implements AuthenticationSuccessHan
 
         boolean isUser = false;
         boolean isAdmin = false;
-        String targetUrl = request.getParameter("referer");
-        //if (targetUrl.endsWith("/")) targetUrl = targetUrl.substring(0, targetUrl.length());
+        String refererParam = request.getParameter("referer");
+        String targetUrl = "/user"; // default safe target
+        if (refererParam != null && !refererParam.isEmpty()) {
+            try {
+                URL refererURL = new URL(refererParam);
+                String requestHost = request.getServerName();
+                int requestPort = request.getServerPort();
+                String refererHost = refererURL.getHost();
+                int refererPort = refererURL.getPort() == -1 ? (refererURL.getProtocol().equals("https") ? 443 : 80) : refererURL.getPort();
+                
+                // Only allow redirects to same host and port
+                if (refererHost.equals(requestHost) && refererPort == requestPort) {
+                    targetUrl = refererURL.getPath();
+                    if (targetUrl == null || targetUrl.isEmpty()) {
+                        targetUrl = "/";
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Invalid referer URL provided, using default: " + e.getMessage());
+            }
+        }
         String targetPath = new URL(targetUrl).getPath();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();

@@ -145,15 +145,15 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
             if (activeProfile.contains("dev")) {
                 log.info("Running development profile");
                 httpSecurity.csrf().disable();
-                httpSecurity.headers().frameOptions().disable();
+                // Frame options protection enabled (using Spring Security defaults)
                 httpSecurity.cors().disable();
                 httpSecurity.headers().xssProtection().disable();
             }
 
-            /*
-            http.headers()
-           .contentSecurityPolicy("script-src 'self' https://trustedscripts.example.com; object-src https://trustedplugins.example.com; report-uri /csp-report-endpoint/");
-             */
+
+            httpSecurity.headers()
+                    .contentSecurityPolicy("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; form-action 'self'");
+ 
 
             httpSecurity.authorizeRequests()
                     .antMatchers("/",

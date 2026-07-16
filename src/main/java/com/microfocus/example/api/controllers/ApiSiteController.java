@@ -239,8 +239,8 @@ public class ApiSiteController {
                 .collect(Collectors.toList());
 
         Cookie jwtTokenCookie = new Cookie("jwtToken", jwt);
-        jwtTokenCookie.setSecure(false);
-        jwtTokenCookie.setHttpOnly(false);
+        jwtTokenCookie.setSecure(true);
+        jwtTokenCookie.setHttpOnly(true);
         response.addCookie(jwtTokenCookie);
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
@@ -287,5 +287,3 @@ public class ApiSiteController {
     }
 
 }
-
-

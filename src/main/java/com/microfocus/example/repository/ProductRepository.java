@@ -50,9 +50,9 @@ public class ProductRepository {
     }
 
     public List<Product> findAll(int offset, int limit) {
-        String sqlQuery = "select * from products" +
-                " LIMIT " + limit + " OFFSET " + offset;
-        return jdbcTemplate.query(sqlQuery, new ProductMapper());
+        String sqlQuery = "select * from products LIMIT ? OFFSET ?";
+        return jdbcTemplate.query(sqlQuery, new ProductMapper(), limit, offset);
+    }
     }
 
     public List<Product> findAvailable(int offset, int limit) {
@@ -89,15 +89,15 @@ public class ProductRepository {
 
     public Optional<Product> findByCode(String code) {
         List<Product> result = new ArrayList<>();
-        String query = code.toLowerCase();
-        String sqlQuery = "SELECT * FROM " + getTableName() +
-                " WHERE lower(code) = '" + query + "'";
-        result = jdbcTemplate.query(sqlQuery, new ProductMapper());
+        String sqlQuery = "SELECT * FROM " + getTableName() + 
+                " WHERE lower(code) = ?";
+        result = jdbcTemplate.query(sqlQuery, new ProductMapper(), code.toLowerCase());
         Optional<Product> optionalProduct = Optional.empty();
         if (!result.isEmpty()) {
             optionalProduct = Optional.of(result.get(0));
         }
         return optionalProduct;
+    }
     }
 
     public List<Product> findByKeywords(String keywords, int offset, int limit) {
@@ -113,8 +113,8 @@ public class ProductRepository {
     public List<Product> findByKeywordsFromProductName(String keywords) {
     	String query = keywords.toLowerCase();
     	String sqlQuery = "SELECT * FROM " + getTableName() + 
-    			" WHERE lower(name) LIKE '%" + query + "%' ";
-    	return jdbcTemplate.query(sqlQuery, new ProductMapper());
+    			" WHERE lower(name) LIKE ?";
+    	return jdbcTemplate.query(sqlQuery, new ProductMapper(), "%" + query + "%");
     }
 
     public List<Product> findAvailableByKeywords(String keywords, int offset, int limit) {
@@ -129,10 +129,10 @@ public class ProductRepository {
     }
 
     public List<Product> findAvailableByKeywordsFromProductName(String keywords) {
-    	String query = keywords.toLowerCase();
-    	String sqlQuery = "SELECT * FROM " + getTableName() +
-    			" WHERE available = true AND lower(name) LIKE '%" + query + "%' ";
-    	return jdbcTemplate.query(sqlQuery, new ProductMapper());
+        String query = "%" + keywords.toLowerCase() + "%";
+        String sqlQuery = "SELECT * FROM " + getTableName() + 
+                " WHERE available = true AND lower(name) LIKE ?";
+        return jdbcTemplate.query(sqlQuery, new ProductMapper(), query);
     }
     
     public Product save(Product p) {
