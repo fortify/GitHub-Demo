@@ -669,9 +669,10 @@ public class UserController extends AbstractBaseController {
     		return ResponseEntity.badRequest().build();
     	}
     	
-    	Resource rfile = storageService.loadAsResource(file, true);    	
+    	Resource rfile = storageService.loadAsResource(file, true);
+    	String safeFilename = rfile.getFilename().replaceAll("[\\r\\n]", "");
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + rfile.getFilename() + "\"").body(rfile);    	
+                "attachment; filename=\"" + safeFilename + "\"").body(rfile);
     }
 
     @GetMapping("/log")

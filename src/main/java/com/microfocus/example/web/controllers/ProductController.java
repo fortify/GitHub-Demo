@@ -1,30 +1,31 @@
-/*
-        Insecure Web App (IWA)
-
-        Copyright (C) 2020-2022 Micro Focus or one of its affiliates
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-package com.microfocus.example.web.controllers;
-
-import com.microfocus.example.config.LocaleConfiguration;
-import com.microfocus.example.entity.Product;
-import com.microfocus.example.exception.ServerErrorException;
-import com.microfocus.example.service.ProductService;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
+/* // L1
+        Insecure Web App (IWA) // L2
+ // L3
+        Copyright (C) 2020-2022 Micro Focus or one of its affiliates // L4
+ // L5
+        This program is free software: you can redistribute it and/or modify // L6
+        it under the terms of the GNU General Public License as published by // L7
+        the Free Software Foundation, either version 3 of the License, or // L8
+        (at your option) any later version. // L9
+ // L10
+        This program is distributed in the hope that it will be useful, // L11
+        but WITHOUT ANY WARRANTY; without even the implied warranty of // L12
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the // L13
+        GNU General Public License for more details. // L14
+ // L15
+        You should have received a copy of the GNU General Public License // L16
+        along with this program.  If not, see <http://www.gnu.org/licenses/>. // L17
+*/ // L18
+ // L19
+package com.microfocus.example.web.controllers; // L20
+ // L21
+import com.microfocus.example.config.LocaleConfiguration; // L22
+import com.microfocus.example.entity.Product; // L23
+import com.microfocus.example.exception.ServerErrorException; // L24
+import com.microfocus.example.service.ProductService; // L25
+ // L26
+import org.apache.commons.lang3.exception.ExceptionUtils; // L27
+import org.springframework.web.util.HtmlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +89,7 @@ public class ProductController extends AbstractBaseController {
     @ResponseBody
     public ResponseEntity<String> getKeywordsContent(@Param("keywords") String keywords) {
 
-    	String retContent = "Product search using: " + keywords;
+    	String retContent = "Product search using: " + HtmlUtils.htmlEscape(keywords);
     	
         return ResponseEntity.ok().body(retContent);
     }
@@ -152,7 +153,11 @@ public class ProductController extends AbstractBaseController {
 
         log.debug("Using data directory: " + dataDir.getAbsolutePath());
         String fileBasePath = dataDir.getAbsolutePath() + File.separatorChar + productId.toString() + File.separatorChar;
-        Path path = Paths.get(fileBasePath + fileName);
+        Path basePath = Paths.get(fileBasePath).normalize();
+        Path path = basePath.resolve(fileName).normalize();
+        if (!path.startsWith(basePath)) {
+            return ResponseEntity.notFound().build();
+        }
         try {
             resource = new UrlResource(path.toUri());
         } catch (MalformedURLException e) {

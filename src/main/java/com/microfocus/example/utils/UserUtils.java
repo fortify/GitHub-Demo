@@ -57,13 +57,13 @@ public class UserUtils {
         jGenerator.writeStartObject();
 
         jGenerator.writeFieldName("username");
-        jGenerator.writeRawValue("\"" + username + "\"");
+        jGenerator.writeString(username);
 
         jGenerator.writeFieldName("password");
-        jGenerator.writeRawValue("\"" + password + "\"");
+        jGenerator.writeString(password);
 
         jGenerator.writeFieldName("role");
-        jGenerator.writeRawValue("\"default\"");
+        jGenerator.writeString("default");
 
         jGenerator.writeEndObject();
 
@@ -78,7 +78,9 @@ public class UserUtils {
 
         File dataFile = new File(getFilePath(NEWSLETTER_USER_FILE));
         if (dataFile.exists()) {
-            jsonArray = (JSONArray) jsonParser.parse(new FileReader(getFilePath(NEWSLETTER_USER_FILE)));
+            try (FileReader reader = new FileReader(getFilePath(NEWSLETTER_USER_FILE))) {
+                jsonArray = (JSONArray) jsonParser.parse(reader);
+            }
         } else {
             dataFile.createNewFile();
             log.debug("Created: " + getFilePath(NEWSLETTER_USER_FILE));
@@ -94,11 +96,11 @@ public class UserUtils {
                 jGenerator.writeStartObject();
                 JSONObject person = (JSONObject) jsonObject;
                 jGenerator.writeFieldName("firstName");
-                jGenerator.writeRawValue("\"" + (String) person.get("firstName") + "\"");
+                jGenerator.writeString((String) person.get("firstName")); // L97
                 jGenerator.writeFieldName("lastName");
                 jGenerator.writeRawValue("\"" + (String) person.get("lastName") + "\"");
                 jGenerator.writeFieldName("email");
-                jGenerator.writeRawValue("\"" + (String) person.get("email") + "\"");
+                jGenerator.writeString((String) person.get("email")); // L101
                 jGenerator.writeFieldName("role");
                 jGenerator.writeRawValue("\"" + (String) person.get("role") + "\"");
                 jGenerator.writeEndObject();
@@ -108,11 +110,11 @@ public class UserUtils {
             // write new user
             jGenerator.writeStartObject();
             jGenerator.writeFieldName("firstName");
-            jGenerator.writeRawValue("\"" + firstName + "\"");
+            jGenerator.writeString(firstName); // L111
             jGenerator.writeFieldName("lastName");
             jGenerator.writeRawValue("\"" + lastName + "\"");
             jGenerator.writeFieldName("email");
-            jGenerator.writeRawValue("\"" + email + "\"");
+            jGenerator.writeString(email); // L115
             jGenerator.writeFieldName("role");
             jGenerator.writeRawValue("\"" + DEFAULT_ROLE + "\"");
             jGenerator.writeEndObject();
@@ -126,11 +128,12 @@ public class UserUtils {
 
     public void logZipContents(String fName)
             throws IOException, SecurityException, IllegalStateException, NoSuchElementException {
-        ZipFile zf = new ZipFile(fName);
-        @SuppressWarnings("unchecked")
-		Enumeration<ZipEntry> e = (Enumeration<ZipEntry>) zf.entries();
-        while (e.hasMoreElements()) {
-            log.info(e.nextElement().toString());
+        try (ZipFile zf = new ZipFile(fName)) {
+            @SuppressWarnings("unchecked")
+            Enumeration<ZipEntry> e = (Enumeration<ZipEntry>) zf.entries();
+            while (e.hasMoreElements()) {
+                log.info(e.nextElement().toString());
+            }
         }
     }
 

@@ -140,7 +140,11 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public Path load(String filename) {
-        return rootLocation.resolve(filename);
+        Path resolvedPath = rootLocation.resolve(filename).normalize().toAbsolutePath();
+        if (!resolvedPath.getParent().equals(this.rootLocation.toAbsolutePath())) {
+            throw new StorageException("Cannot access file outside current directory.");
+        }
+        return resolvedPath;
     }
 
     @Override
@@ -152,13 +156,18 @@ public class FileSystemStorageService implements StorageService {
      * To expose OWASP A01:2021 - Broken Access Control
      */
     @Override
+    @Override
     public Resource loadAsResource(String filename, boolean traverse) {
         try {
             Path file = null; 
             if (traverse) {
-            	file = Paths.get(filename);
+                file = Paths.get(filename).normalize().toAbsolutePath();
+                // Security check: ensure the resolved path is within rootLocation
+                if (!file.startsWith(this.rootLocation.toAbsolutePath())) {
+                    throw new StorageException("Cannot access file outside current directory.");
+                }
             } else { 
-            	file = load(filename);
+                file = load(filename);
             }
             
             Resource resource = new UrlResource(file.toUri());

@@ -101,20 +101,42 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 targetUrl = loginReferer;
                 String targetPath = null;
                 try {
-                    targetPath = new URL(targetUrl).getPath();
+                    URL url = new URL(targetUrl);
+                    // Only allow relative URLs or URLs from the same host
+                    String requestHost = request.getServerName();
+                    if (!url.getHost().equals(requestHost)) {
+                        log.warn("Attempted redirect to external host: " + url.getHost() + ", redirecting to user home instead");
+                        targetUrl = USER_HOME_URL;
+                    } else {
+                        targetPath = url.getPath();
+                        if (targetUrl.contains("?")) targetUrl = targetUrl.substring(0, targetUrl.indexOf("?"));
+                        if (targetPath.endsWith("/cart")) {
+                            targetUrl = targetUrl.replace("/cart", "/cart/checkout");
+                        } else if (targetPath.endsWith("/login")) {
+                            targetUrl = targetUrl.replace("/login", "/user");
+                        } else if (targetPath.endsWith("/register")) {
+                            targetUrl = targetUrl.replace("/register", "/");
+                        } else if (targetPath.equals("/")) {
+                            targetUrl = targetUrl + "user";
+                        }
+                    }
                 } catch (MalformedURLException ex) {
                     log.error(ex.getLocalizedMessage());
+                    // If URL is malformed, treat as relative path
+                    targetPath = loginReferer;
+                    if (targetUrl.contains("?")) targetUrl = targetUrl.substring(0, targetUrl.indexOf("?"));
+                    if (targetPath.endsWith("/cart")) {
+                        targetUrl = targetUrl.replace("/cart", "/cart/checkout");
+                    } else if (targetPath.endsWith("/login")) {
+                        targetUrl = targetUrl.replace("/login", "/user");
+                    } else if (targetPath.endsWith("/register")) {
+                        targetUrl = targetUrl.replace("/register", "/");
+                    } else if (targetPath.equals("/")) {
+                        targetUrl = targetUrl + "user";
+                    }
                 }
-                if (targetUrl.contains("?")) targetUrl = targetUrl.substring(0, targetUrl.indexOf("?"));
-                if (targetPath.endsWith("/cart")) {
-                    targetUrl = targetUrl.replace("/cart", "/cart/checkout");
-                } else if (targetPath.endsWith("/login")) {
-                    targetUrl = targetUrl.replace("/login", "/user");
-                } else if (targetPath.endsWith("/register")) {
-                    targetUrl = targetUrl.replace("/register", "/");
-                } else if (targetPath.equals("/")) {
-                    targetUrl = targetUrl + "user";
-                }
+
+            }
 
             }
         }
